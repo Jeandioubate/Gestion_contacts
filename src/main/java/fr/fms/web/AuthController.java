@@ -71,7 +71,33 @@ public class AuthController {
         return "login"; // Retourne à la page de connexion pour réessaye        
     }
     
+    /**
+     * Déconnecte l'utilisateur en invalidant sa session.
+     * Gère la requête GET vers l'URL "/logout".
+     *
+     * @param session La session HTTP à invalider
+     * @return Redirection vers la page d'accueil public ("/accueil")
+     */
+    @GetMapping("/logout") // Gère les requêtes HTTP GET vers l'URL "/logout"
+    public String logout(HttpSession session) {
+        session.invalidate(); // Invalide/détruit la session en cours (supprime toutes les données de session)
+        return "redirect:/accueil"; // Redirige vers la page d'accueil publique
+    }
+
+    /**
+     * Affiche la page d'accueil publique.
+     * Cette page est accessible sans authentification.
+     * Gère la requête GET vers l'URL "/accueil".
+     *
+     * @return Le nom de la vue Thymeleaf "accueil" (accueil.html)
+     */
+    @GetMapping("/accueil") // Gère les requêtes HTTP GET vers l'URL "/accueil"
+    public String accueil() {
+        return "accueil"; // Retourne la page d'accueil publique
+    }
 }
+    
+
     
 
     
