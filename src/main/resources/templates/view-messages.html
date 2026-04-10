@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<!--
+  Page d'affichage des messages d'un contact (view-messages.html)
+
+  Cette page permet de consulter l'historique des messages échangés avec un contact.
+  Fonctionnalités :
+  - Affichage de tous les messages (envoyés/reçus) pour un contact spécifique
+  - Compteur de messages non lus avec badge
+  - Marquage d'un message comme lu
+  - Conservation des paramètres de filtrage pour le retour
+
+  Notes importantes :
+  - Les messages sont stockés en session HTTP (pas de persistance BDD)
+  - Les messages non lus sont mis en évidence (gras, badge "Nouveau")
+  - Accessible uniquement après authentification
+  - Utilise le template layout.html comme structure de base
+-->
+
+<!--
+  Déclarations des namespaces :
+  - th: pour les attributs Thymeleaf
+  - layout: pour l'extension Layout Dialect
+  - layout:decorate="~{layout}" : hérite du template layout.html
+-->
+<html xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout}">
+
+<!-- Zone de contenu principal injectée dans le layout -->
+<div layout:fragment="content" class="container mt-4">
+
+	<!-- Carte principale contenant les messages -->
+	<div class="card">
+		
+		<!-- EN-TÊTE DE LA CARTE                                   -->
+
+		<div class="card-header bg-primary text-white">
+			<h4>
+				<!-- Titre avec le nom complet du contact -->
+				Messages pour <span th:text="${contact.firstName + ' ' + contact.lastName}"></span>
+
+				<!--
+				  Badge indiquant le nombre de messages non lus
+				  Visible uniquement si unreadCount > 0
+				  th:if="${unreadCount > 0}" : affichage conditionnel
+				-->
+				<span th:if="${unreadCount > 0}" class="badge bg-danger ms-2"
+					  th:text="${unreadCount} + ' non lu(s)'"></span>
+			</h4>
+		</div>
+
+		<!-- CORPS DE LA CARTE : LISTE DES MESSAGES                -->
+	
+		<div class="card-body">
+			
+			<!-- BOUTON DE RETOUR                                   -->
+
+			<div class="mb-3">
+				<!--
+				  Bouton retour à la liste des contacts
+				  Conserve les paramètres de filtrage (catégorie, mot-clé)
+				-->
+				<a th:href="@{/index(categoryId=${returnCategoryId}, keyword=${returnKeyword})}"
+				   class="btn btn-secondary">← Retour à la liste</a>
+			</div>
+		
+			<!-- MESSAGE SI AUCUN MESSAGE                           -->
+		
+			<!--
+			  Affiche une alerte si la liste des messages est vide
+			  th:if="${messages == null or messages.empty}"
+			-->
+			<div th:if="${messages == null or messages.empty}" class="alert alert-info">
+				Aucun message pour ce contact.
+			</div>
+	
+			<!-- LISTE DES MESSAGES (itération)                     -->
+	
+			<!--
+			  th:each="msg : ${messages}" : itère sur tous les messages
+			  Chaque message est affiché dans une carte Bootstrap
+			-->
+			<div th:each="msg : ${messages}" class="card mb-3">
+
+				<!-- En-tête du message -->
+				<div class="card-header" th:classappend="${!msg.read} ? 'fw-bold bg-light' : ''">
+					<div class="d-flex justify-content-between align-items-center">
+						<div>
+							<!-- Sujet du message -->
+							<strong th:text="${msg.subject}"></strong>
+
+							<!-- Badge "Nouveau" pour les messages non lus -->
+							<span th:if="${!msg.read}" class="badge bg-danger ms-2">Nouveau</span>
+						</div>
+
+						<!-- Date d'envoi formatée -->
+						<!--
+						  #temporals.format() : utilitaire Thymeleaf pour formater les dates
+						  format : 'dd/MM/yyyy HH:mm' (ex: 25/12/2025 14:30)
+						-->
+						<small class="text-muted" th:text="${#temporals.format(msg.sentDate, 'dd/MM/yyyy HH:mm')}"></small>
+					</div>
+				</div>
+
+				<!-- Corps du message -->
+				<div class="card-body">
+					<!-- Contenu du message -->
+					<p class="card-text" th:text="${msg.content}"></p>
+
+					<!-- Nom de l'expéditeur -->
+					<small class="text-muted">
+						De : <span th:text="${msg.senderName}"></span>
+					</small>
+				</div>
+		
+				<!-- PIED DE CARTE : BOUTON MARQUER COMME LU        -->
+		
+				<!--
+				  Affiche le bouton uniquement pour les messages non lus
+				  th:if="${!msg.read}"
+				-->
+				<div class="card-footer" th:if="${!msg.read}">
+
+					<!--
+					  Formulaire pour marquer un message comme lu
+					  Soumission en POST vers /markAsRead (ContactController.markAsRead)
+					-->
+					<form th:action="@{/markAsRead}" method="post" style="display: inline;">
+
+						<!-- ID du message à marquer -->
+       					<input type="hidden" name="messageId" th:value="${msg.id}">
+
+       					<!-- ID du contact associé -->
+        				<input type="hidden" name="contactId" th:value="${contact.id}">
+
+        				<!-- Paramètres de contexte pour le retour -->
+        				<input type="hidden" name="categoryId" th:value="${returnCategoryId}">
+        				<input type="hidden" name="keyword" th:value="${returnKeyword}">
+
+        				<!-- Bouton de soumission -->
+        				<button type="submit" class="btn btn-sm btn-outline-primary">Marquer comme lu</button>
+    				</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</html>
