@@ -43,5 +43,17 @@ public class ContactController {
     @Autowired // Injection automatique du bean CategoryRepository par Spring
     private CategoryRepository categoryRepository;
     
+    /**
+     * Vérifie si l'utilisateur est authentifié en session.
+     * Méthode utilitaire privée appelée au début de chaque méthode publique.
+     *
+     * @param session La session HTTP contenant les informations de l'utilisateur
+     * @return true si l'utilisateur est authentifié, false sinon
+     */
+    private boolean isAuthenticated(HttpSession session) {
+        // Vérifie la présence de l'attribut "loggedUser" et qu'il est à true
+        return session.getAttribute("loggedUser") != null && (boolean) session.getAttribute("loggedUser");
+    }
+    
     
 }
