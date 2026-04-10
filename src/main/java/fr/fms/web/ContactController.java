@@ -43,6 +43,12 @@ public class ContactController {
     private CategoryRepository categoryRepository;
     
     /**
+     * Service de gestion des messages (injection automatique par Spring)
+     */
+    @Autowired // Injection automatique du bean MessageService par Spring
+    private MessageService messageService;
+    
+    /**
      * Vérifie si l'utilisateur est authentifié en session.
      * Méthode utilitaire privée appelée au début de chaque méthode publique.
      *
@@ -351,6 +357,54 @@ public class ContactController {
 
         return redirect; // Redirection vers l'index
     }
+    
+    /**
+     * Affiche tous les messages échangés avec un contact spécifique.
+     * Les messages sont récupérés depuis la session.
+     *
+     * @param contactId ID du contact concerné
+     * @param categoryId ID de catégorie pour le retour (optionnel)
+     * @param keyword Mot-clé pour le retour (optionnel)
+     * @param model Le modèle Spring
+     * @param session La session HTTP
+     * @return La vue "view-messages" ou redirection vers l'index
+     */
+    // Afficher les messages
+    @GetMapping("/viewMessages") // Gère les requêtes HTTP GET vers l'URL "/viewMessages"
+    public String viewMessages(@RequestParam Long contactId, // ID du contact
+                              @RequestParam(name="categoryId", required=false) Long categoryId, // Contexte
+                              @RequestParam(name="keyword", defaultValue="") String keyword, // Contexte
+                              Model model,
+                              HttpSession session) {
+
+        // Vérification de l'authentification
+        if (!isAuthenticated(session)) {
+            return "redirect:/login";
+        }
+
+        // Recherche le contact
+        Optional<Contact> contactOpt = contactRepository.findById(contactId);
+        if (contactOpt.isPresent()) {
+            Contact contact = contactOpt.get();
+
+            // Récupère les messages depuis la session
+            List<MessageDto> messages = messageService.getMessagesForContact(contactId, session);
+            // Compte les messages non lus
+            long unreadCount = messageService.countUnreadMessages(contactId, session);
+
+            // Ajoute les attributs au modèle
+            model.addAttribute("contact", contact);
+            model.addAttribute("messages", messages);
+            model.addAttribute("unreadCount", unreadCount);
+            model.addAttribute("returnCategoryId", categoryId);
+            model.addAttribute("returnKeyword", keyword);
+
+            return "view-messages"; // Retourne la vue des messages
+        }
+
+        return "redirect:/index"; // Redirection si le contact n'existe pas
+    }
+
     
     
 }
