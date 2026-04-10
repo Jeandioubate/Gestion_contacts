@@ -118,5 +118,50 @@ public class MessageService {
             .filter(m -> !m.isRead()) // Garde uniquement les messages où read == false
             .count(); // Compte le nombre d'éléments restants
     }
+    
+    /**
+     * Marque un message spécifique comme lu.
+     * Parcourt la liste des messages du contact jusqu'à trouver le message correspondant
+     * à l'ID fourni, puis modifie son attribut read à true.
+     *
+     * @param contactId L'identifiant du contact associé au message
+     * @param messageId L'identifiant du message à marquer comme lu
+     * @param session La session HTTP contenant les messages
+     */
+    // Marquer un message comme lu
+    public void markAsRead(Long contactId, Long messageId, HttpSession session) {
+        // Récupère la map des messages depuis la session
+        Map<Long, List<MessageDto>> messagesMap = getMessagesMap(session);
+
+        // Récupère la liste des messages pour le contact spécifié
+        List<MessageDto> messages = messagesMap.get(contactId);
+
+        // Si une liste existe pour ce contact
+        if (messages != null) {
+            // Parcourt la liste pour trouver le message avec l'ID correspondant
+            for (MessageDto message : messages) {
+                if (message.getId().equals(messageId)) {
+                    message.setRead(true); // Marque le message comme lu
+                    break; // Sort de la boucle une fois trouvé (optimisation)
+                }
+            }
+        }
+    }
+    
+    /**
+     * Supprime tous les messages associés à un contact.
+     * Méthode optionnelle (peut être utilisée lors de la suppression d'un contact).
+     *
+     * @param contactId L'identifiant du contact dont les messages doivent être supprimés
+     * @param session La session HTTP contenant les messages
+     */
+    // Supprimer les messages d'un contact (optionnel)
+    public void deleteMessagesForContact(Long contactId, HttpSession session) {
+        // Récupère la map des messages depuis la session
+        Map<Long, List<MessageDto>> messagesMap = getMessagesMap(session);
+
+        // Supprime l'entrée correspondant au contactId (supprime toute la liste des messages)
+        messagesMap.remove(contactId);
+    }
 	
 }
