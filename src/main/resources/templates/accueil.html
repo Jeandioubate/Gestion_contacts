@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<!--
+  Page d'accueil publique de l'application Mon Agenda de Contacts.
+  Cette page présente l'application et affiche un aperçu statique des contacts.
+  Elle est accessible sans authentification.
+
+  Points clés :
+  - Utilise le template layout.html comme structure de base
+  - Contient des données de démonstration statiques (non liées à la base de données)
+  - Propose un lien vers la connexion pour accéder aux fonctionnalités complètes
+-->
+
+<!--
+  Déclarations des namespaces XML :
+  - th: pour les attributs standard Thymeleaf
+  - layout: pour l'extension Layout Dialect
+  - layout:decorate="~{layout}" : indique que cette page hérite du template layout.html
+-->
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+
+<!--
+  Zone de contenu principal injectée dans le layout
+  Le fragment "content" du layout est remplacé par le contenu de ce div
+-->
+<div layout:fragment="content" class="container mt-4">
+
+    <!-- Carte principale contenant le contenu de la page d'accueil -->
+    <div class="card">
+
+        <!-- En-tête de la carte avec fond bleu -->
+        <div class="card-header bg-primary text-white">
+            <h4>Bienvenue sur Mon Agenda de Contacts</h4>
+        </div>
+
+        <!-- Corps de la carte -->
+        <div class="card-body">
+            <h5>Mes Contacts</h5>
+
+            <!--
+              Tableau statique présentant des exemples de contacts
+              C'est une liste de contacts fictifs pour les visiteurs, non lié à la base de données            
+            -->
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Prénom</th>
+                        <th>Email</th>
+                        <th>Téléphone</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Exemple de contact 1 -->
+                    <tr>
+                        <td>Dupont</td>
+                        <td>Jean</td>
+                        <td>jean.dupont@email.com</td>
+                        <td>0612345678</td>
+                    </tr>
+                    <!-- Exemple de contact 2 -->
+                    <tr>
+                        <td>Martin</td>
+                        <td>Sophie</td>
+                        <td>sophie.martin@email.com</td>
+                        <td>0623456789</td>
+                    </tr>
+                    <!-- Exemple de contact 3 -->
+                    <tr>
+                        <td>Bernard</td>
+                        <td>Pierre</td>
+                        <td>pierre.bernard@email.com</td>
+                        <td>0634567890</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!--
+              Message d'information invitant à se connecter
+              Lien dynamique vers la page de connexion généré par Thymeleaf
+            -->
+            <div class="alert alert-info mt-3">
+                <p>Pour gérer vos contacts, veuillez vous <a th:href="@{/login}">connecter</a>.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pied de page spécifique à la page d'accueil -->
+    <div class="row mt-4">
+        <div class="col text-center text-muted">
+            <small>Version 1.0 | Dernière mise à jour : Décembre 2025</small>
+        </div>
+    </div>
+</div>
+</html>
