@@ -17,6 +17,7 @@ import fr.fms.dao.CategoryRepository;
 import fr.fms.entities.Category;
 import fr.fms.entities.Contact;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 
 
 
@@ -201,6 +202,64 @@ public class ContactController {
             return "contact"; // Retourne la vue d'édition
         }
         return "redirect:/index"; // Redirection si le contact n'existe pas
+    }
+    
+    /**
+     * Sauvegarde un contact (création ou modification) dans la base de données.
+     * Gère la validation des données et la redirection avec conservation des filtres.
+     *
+     * @param contact L'objet Contact à sauvegarder (validé automatiquement)
+     * @param bindingResult Résultat de la validation
+     * @param categoryId ID de la catégorie associée au contact
+     * @param isEdit Indique si c'est une modification (false par défaut)
+     * @param returnCategoryId ID de catégorie pour le retour 
+     * @param returnKeyword Mot-clé pour le retour 
+     * @param model Le modèle Spring
+     * @param session La session HTTP
+     * @return Redirection vers l'index ou retour au formulaire en cas d'erreur
+     */
+    @PostMapping("/save") // Gère les requêtes HTTP POST vers l'URL "/save"
+    public String save(@Valid Contact contact, // Validation automatique des contraintes (@NotEmpty etc.)
+                      BindingResult bindingResult, // Contient les erreurs de validation
+                      @RequestParam("categoryId") Long categoryId, // ID de la catégorie sélectionnée
+                      @RequestParam(name="isEdit", defaultValue="false") boolean isEdit, // Mode ajout/modification
+                      @RequestParam(name="returnCategoryId", required=false) Long returnCategoryId, // Contexte de retour
+                      @RequestParam(name="returnKeyword", defaultValue="") String returnKeyword, // Contexte de retour
+                      Model model,
+                      HttpSession session) {
+
+        // Vérification de l'authentification
+        if (!isAuthenticated(session)) {
+            return "redirect:/login";
+        }
+
+        // Vérifie s'il y a des erreurs de validation
+        if (bindingResult.hasErrors()) {
+            // Recharge les catégories et les paramètres dans le modèle
+            model.addAttribute("categories", categoryRepository.findAll());
+            model.addAttribute("isEdit", isEdit);
+            model.addAttribute("returnCategoryId", returnCategoryId);
+            model.addAttribute("returnKeyword", returnKeyword);
+            return "contact"; // Retourne au formulaire pour afficher les erreurs
+        }
+
+        // Récupère la catégorie depuis la base de données
+        Category category = categoryRepository.findById(categoryId).orElse(null);
+        contact.setCategory(category); // Associe la catégorie au contact
+        contactRepository.save(contact); // Sauvegarde le contact (création ou mise à jour)
+
+        // Construction de l'URL de redirection avec les paramètres conservés
+        String redirect = "redirect:/index";
+        if (returnCategoryId != null) {
+            redirect += "?categoryId=" + returnCategoryId;
+            if (!returnKeyword.isEmpty()) {
+                redirect += "&keyword=" + returnKeyword;
+            }
+        } else if (!returnKeyword.isEmpty()) {
+            redirect += "?keyword=" + returnKeyword;
+        }
+
+        return redirect; // Redirection vers la liste des contacts
     }
     
     
