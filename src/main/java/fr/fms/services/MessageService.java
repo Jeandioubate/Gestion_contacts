@@ -53,5 +53,32 @@ public class MessageService {
         }
         return messagesMap;
     }
+    
+    /**
+     * Envoie un message à un contact.
+     * Le message est créé avec une date automatique et un ID unique,
+     * puis ajouté à la liste des messages du contact.
+     *
+     * @param subject Le sujet du message
+     * @param content Le contenu du message
+     * @param senderName Le nom de l'expéditeur (utilisateur connecté)
+     * @param contactId L'identifiant du contact destinataire
+     * @param contactName Le nom complet du contact destinataire
+     * @param session La session HTTP pour stocker le message
+     */
+    // Envoyer un message
+    public void sendMessage(String subject, String content, String senderName,
+                           Long contactId, String contactName, HttpSession session) {
+        // Crée un nouveau DTO de message avec les informations fournies
+        MessageDto message = new MessageDto(subject, content, senderName, contactId, contactName);
+
+        // Récupère la map des messages depuis la session
+        Map<Long, List<MessageDto>> messagesMap = getMessagesMap(session);
+
+        //
+        // computeIfAbsent : Si aucune liste n'existe pour ce contactId, en crée une nouvelle (ArrayList)
+        // Puis ajoute le message à la liste existante ou nouvellement créée
+        messagesMap.computeIfAbsent(contactId, k -> new ArrayList<>()).add(message);
+    }
 	
 }
