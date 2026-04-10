@@ -107,5 +107,43 @@ public class ContactController {
         return "contacts"; // Retourne le nom de la vue Thymeleaf (contacts.html)
     }
     
+    /**
+     * Supprime un contact par son ID.
+     * Après suppression, redirige vers l'index en conservant les paramètres de filtrage.
+     *
+     * @param id ID du contact à supprimer
+     * @param categoryId ID de la catégorie pour conserver le filtre (optionnel)
+     * @param keyword Mot-clé pour conserver la recherche (optionnel)
+     * @param session La session HTTP pour vérifier l'authentification
+     * @return Redirection vers l'index avec les paramètres conservés
+     */
+    @GetMapping("/delete") // Gère les requêtes HTTP GET vers l'URL "/delete"
+    public String delete(@RequestParam Long id, // ID du contact à supprimer
+                        @RequestParam(name="categoryId", required=false) Long categoryId, // Paramètre optionnel pour le filtre
+                        @RequestParam(name="keyword", defaultValue="") String keyword, // Paramètre optionnel pour la recherche
+                        HttpSession session) {
+
+        // Vérification de l'authentification
+        if (!isAuthenticated(session)) {
+            return "redirect:/login";
+        }
+
+        // Supprime le contact de la base de données
+        contactRepository.deleteById(id);
+
+        // Construction de l'URL de redirection avec les paramètres conservés
+        String redirect = "redirect:/index"; // URL de base
+        if (categoryId != null) {
+            redirect += "?categoryId=" + categoryId; // Ajoute le paramètre categoryId
+            if (!keyword.isEmpty()) {
+                redirect += "&keyword=" + keyword; // Ajoute le paramètre keyword
+            }
+        } else if (!keyword.isEmpty()) {
+            redirect += "?keyword=" + keyword; // Ajoute seulement le mot-clé
+        }
+
+        return redirect; // Retourne la redirection
+    }
+    
     
 }
