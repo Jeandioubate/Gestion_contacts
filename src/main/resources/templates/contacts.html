@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<!--
+  Page principale de gestion des contacts (contacts.html)
+  Cette page affiche la liste des contacts avec des fonctionnalités de :
+  - Filtrage par catégorie
+  - Recherche textuelle (nom/prénom)
+  - Ajout, modification, suppression de contacts
+  - Envoi et consultation de messages
+
+  Accessible uniquement après authentification (vérifiée par le contrôleur)
+  Utilise le template layout.html comme structure de base
+-->
+
+<!--
+  Déclarations des namespaces :
+  - th: pour les attributs Thymeleaf
+  - layout: pour l'extension Layout Dialect
+  - layout:decorate="~{layout}" : hérite du template layout.html
+-->
+<html xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout}">
+
+<!-- Zone de contenu principal injectée dans le layout -->
+<div layout:fragment="content" class="container mt-4">
+
+	<!-- Carte principale contenant la liste des contacts -->
+	<div class="card">
+
+		<!-- En-tête de la carte -->
+		<div class="card-header bg-primary text-white">
+			<h4>Mes contacts</h4>
+		</div>
+
+		<div class="card-body">
+
+			<!-- ===================================================== -->
+			<!-- SECTION 1 : FILTRES PAR CATÉGORIE (Boutons)           -->
+			<!-- ===================================================== -->
+			<div class="mb-3">
+				<!-- Groupe de boutons Bootstrap -->
+				<div class="btn-group" role="group">
+
+					<!-- Bouton "Tous" : affiche tous les contacts sans filtre -->
+					<a th:href="@{/index}"
+					   class="btn"
+					   th:classappend="${selectedCategoryId == null} ? 'btn-primary' : 'btn-outline-primary'">
+						Tous
+					</a>
+
+					<!--
+					  Boutons de catégorie générés dynamiquement
+					  th:each="cat : ${categories}" : itère sur toutes les catégories
+					  th:classappend : applique btn-primary si sélectionné, btn-outline-primary sinon
+					-->
+					<a th:each="cat : ${categories}"
+					   th:href="@{/index(categoryId=${cat.id})}"
+					   class="btn"
+					   th:classappend="${selectedCategoryId == cat.id} ? 'btn-primary' : 'btn-outline-primary'"
+					   th:text="${cat.name}">
+					</a>
+				</div>
+			</div>
+
+			<!-- ===================================================== -->
+			<!-- SECTION 2 : BARRE DE RECHERCHE TEXTUELLE              -->
+			<!-- ===================================================== -->
+			<!--
+			  Formulaire de recherche en méthode GET
+			  L'action pointe vers /index pour conserver le contexte
+			-->
+			<form th:action="@{/index}" method="get" class="mb-3">
+				<div class="input-group">
+					<!-- Champ caché pour conserver le filtre de catégorie lors de la recherche -->
+					<input type="hidden" name="categoryId" th:value="${selectedCategoryId}">
+
+					<!-- Champ de saisie du mot-clé -->
+					<input type="text" name="keyword" class="form-control"
+						   th:value="${keyword}" placeholder="Rechercher par nom ou prénom...">
+
+					<!-- Bouton de recherche -->
+					<button type="submit" class="btn btn-primary">Rechercher</button>
+
+					<!-- Bouton de réinitialisation : efface la recherche mais conserve la catégorie -->
+					<a th:href="@{/index(categoryId=${selectedCategoryId})}" class="btn btn-secondary">Réinitialiser</a>
+				</div>
+			</form>
