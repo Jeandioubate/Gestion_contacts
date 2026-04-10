@@ -404,7 +404,43 @@ public class ContactController {
 
         return "redirect:/index"; // Redirection si le contact n'existe pas
     }
-
     
+    /**
+     * Marque un message spécifique comme lu.
+     *
+     * @param messageId ID du message à marquer comme lu
+     * @param contactId ID du contact associé
+     * @param categoryId ID de catégorie pour le retour (optionnel)
+     * @param keyword Mot-clé pour le retour (optionnel)
+     * @param session La session HTTP
+     * @return Redirection vers la vue des messages du contact
+     */
+    // Marquer comme lu
+    @PostMapping("/markAsRead") // Gère les requêtes HTTP POST vers l'URL "/markAsRead"
+    public String markAsRead(@RequestParam Long messageId, // ID du message à marquer
+                            @RequestParam Long contactId, // ID du contact associé
+                            @RequestParam(name="categoryId", required=false) Long categoryId, // Contexte
+                            @RequestParam(name="keyword", defaultValue="") String keyword, // Contexte
+                            HttpSession session) {
+
+        // Vérification de l'authentification
+        if (!isAuthenticated(session)) {
+            return "redirect:/login";
+        }
+
+        // Appelle le service pour marquer le message comme lu
+        messageService.markAsRead(contactId, messageId, session);
+
+        // Construction de l'URL de redirection vers la vue des messages
+        String redirect = "/viewMessages?contactId=" + contactId;
+        if (categoryId != null) {
+            redirect += "&categoryId=" + categoryId;
+        }
+        if (keyword != null && !keyword.isEmpty()) {
+            redirect += "&keyword=" + keyword;
+        }
+
+        return "redirect:" + redirect; // Redirection
+    }    
     
 }
