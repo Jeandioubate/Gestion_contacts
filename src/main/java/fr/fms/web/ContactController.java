@@ -55,5 +55,57 @@ public class ContactController {
         return session.getAttribute("loggedUser") != null && (boolean) session.getAttribute("loggedUser");
     }
     
+    /**
+     * Affiche la page d'accueil avec la liste des contacts.
+     * Permet le filtrage par catégorie et la recherche par mot-clé.
+     *
+     * @param model Le modèle Spring pour passer les données à la vue
+     * @param categoryId ID de la catégorie pour le filtrage 
+     * @param keyword Mot-clé pour la recherche 
+     * @param session La session HTTP pour vérifier l'authentification
+     * @return Le nom de la vue "contacts" ou redirection vers login si non authentifié
+     */
+    @GetMapping("/index") // Gère les requêtes HTTP GET vers l'URL "/index"
+    public String index(Model model,
+                       @RequestParam(name="categoryId", required=false) Long categoryId, // Paramètre optionnel pour filtrer par catégorie
+                       @RequestParam(name="keyword", defaultValue="") String keyword, // Paramètre optionnel pour la recherche textuelle
+                       HttpSession session) {
+
+        // Vérification de l'authentification avant d'afficher le contenu
+        if (!isAuthenticated(session)) {
+            return "redirect:/login"; // Redirection vers la page de connexion
+        }
+
+        // Récupère tous les contacts de la base de données
+        List<Contact> allContacts = contactRepository.findAll();
+
+        // Initialise la liste filtrée avec tous les contacts
+        List<Contact> filteredContacts = allContacts;
+
+        // Filtrage par catégorie si un categoryId est fourni
+        if (categoryId != null) {
+            filteredContacts = filteredContacts.stream() // Convertit en stream pour le filtrage
+                .filter(c -> c.getCategory() != null && c.getCategory().getId().equals(categoryId)) // Garde uniquement les contacts de la catégorie spécifiée
+                .collect(Collectors.toList()); // Reconvertit en liste
+        }
+
+        // Filtrage par mot-clé (recherche insensible à la casse dans nom et prénom)
+        if (!keyword.isEmpty()) {
+            filteredContacts = filteredContacts.stream()
+                .filter(c -> c.getLastName().toLowerCase().contains(keyword.toLowerCase()) || // Vérifie si le nom contient le mot-clé
+                            c.getFirstName().toLowerCase().contains(keyword.toLowerCase())) // Vérifie si le prénom contient le mot-clé
+                .collect(Collectors.toList());
+        }
+
+        // Ajoute les attributs au modèle pour la vue
+        model.addAttribute("listContact", filteredContacts); // Liste des contacts filtrés
+        model.addAttribute("categories", categoryRepository.findAll()); // Toutes les catégories pour le menu déroulant
+        model.addAttribute("selectedCategoryId", categoryId); // ID de la catégorie sélectionnée
+        model.addAttribute("keyword", keyword); // Mot-clé de recherche
+        model.addAttribute("username", session.getAttribute("username")); // Nom d'utilisateur connecté
+
+        return "contacts"; // Retourne le nom de la vue Thymeleaf (contacts.html)
+    }
+    
     
 }
