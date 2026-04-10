@@ -21,4 +21,37 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service // Annotation Spring indiquant que cette classe est un bean de service (couche métier)
 public class MessageService {
 	
+	/**
+     * Clé de session utilisée pour stocker la map des messages.
+     * Cette constante permet d'accéder uniformément aux messages dans la session.
+     */
+    private static final String SESSION_MESSAGES_KEY = "user_messages";
+
+    /**
+     * Récupère la map des messages stockée en session.
+     * La structure est : Map&lt;Long, List&lt;MessageDto&gt;&gt;
+     * - Clé : ID du contact
+     * - Valeur : Liste des messages associés à ce contact
+     *
+     * Si la map n'existe pas encore en session, elle est créée automatiquement.
+     *
+     * @param session La session HTTP contenant les données utilisateur
+     * @return La map des messages (jamais null)
+     */
+    @SuppressWarnings("unchecked") // Supprime l'avertissement de cast non vérifié pour la map générique
+    private Map<Long, List<MessageDto>> getMessagesMap(HttpSession session) {
+        // Récupère la map depuis la session en effectuant un cast vers le type générique
+        Map<Long, List<MessageDto>> messagesMap =
+            (Map<Long, List<MessageDto>>) session.getAttribute(SESSION_MESSAGES_KEY);
+
+        // Si la map n'existe pas encore en session
+        if (messagesMap == null) {
+            // Crée une nouvelle map thread-safe (ConcurrentHashMap)
+            messagesMap = new ConcurrentHashMap<>();
+            // La stocke en session pour une utilisation ultérieure
+            session.setAttribute(SESSION_MESSAGES_KEY, messagesMap);
+        }
+        return messagesMap;
+    }
+	
 }
