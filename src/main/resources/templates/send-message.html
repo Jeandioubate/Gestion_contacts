@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<!--
+  Page d'envoi de message à un contact (send-message.html)
+
+  Cette page permet d'envoyer un message à un contact spécifique.
+  Fonctionnalités :
+  - Affichage des informations du destinataire (nom, prénom, email)
+  - Formulaire avec sujet et contenu du message
+  - Stockage du message en session (pas de véritable envoi email)
+  - Conservation des paramètres de filtrage pour le retour
+
+  Notes importantes :
+  - C'est une simulation : les messages ne sont pas réellement envoyés par email
+  - Les messages sont stockés temporairement en session HTTP
+  - Accessible uniquement après authentification
+  - Utilise le template layout.html comme structure de base
+-->
+
+<!--
+  Déclarations des namespaces :
+  - th: pour les attributs Thymeleaf
+  - layout: pour l'extension Layout Dialect
+  - layout:decorate="~{layout}" : hérite du template layout.html
+-->
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+
+<!-- Zone de contenu principal injectée dans le layout -->
+<div layout:fragment="content" class="container mt-4">
+
+    <!-- Carte contenant le formulaire d'envoi de message -->
+    <div class="card">
+        
+        <!-- EN-TÊTE DE LA CARTE                                   -->
+        
+        <div class="card-header bg-primary text-white">
+            <h4>Envoyer un message à <span th:text="${contact.firstName + ' ' + contact.lastName}"></span></h4>
+        </div>
+        
+        <!-- CORPS DE LA CARTE : FORMULAIRE D'ENVOI                -->
+        
+        <div class="card-body">
+
+            <!--
+              Formulaire d'envoi de message
+              th:action="@{/sendMessage}" : soumission vers /sendMessage (ContactController.sendMessage)
+              method="post" : envoi en méthode POST
+            -->
+            <form th:action="@{/sendMessage}" method="post">
+                
+                <!-- CHAMPS CACHÉS (informations de contexte)         -->               
+
+                <!-- ID du contact destinataire -->
+                <input type="hidden" name="contactId" th:value="${contact.id}">
+
+                <!-- Paramètres de contexte pour le retour après envoi -->
+                <input type="hidden" name="returnCategoryId" th:value="${returnCategoryId}">
+                <input type="hidden" name="returnKeyword" th:value="${returnKeyword}">
+               
+                <!-- CHAMP : DESTINATAIRE (affichage seuleument)      -->
+            
+                <div class="mb-3">
+                    <label class="form-label">Destinataire</label>
+                    <!--
+                      Champ désactivé (disabled) : l'utilisateur ne peut pas modifier
+                      Affiche : "Prénom Nom (email@exemple.com)"
+                      disabled empêche l'envoi de cette valeur au serveur
+                    -->
+                    <input type="text" class="form-control"
+                           th:value="${contact.firstName + ' ' + contact.lastName + ' (' + contact.email + ')'}"
+                           disabled>
+                </div>
+              
+                <!-- CHAMP : SUJET DU MESSAGE                          -->
+                
+                <div class="mb-3">
+                    <label class="form-label">Sujet</label>
+                    <!--
+                      name="subject" : paramètre attendu par le contrôleur
+                      required : validation HTML5 (champ obligatoire)
+                    -->
+                    <input type="text" name="subject" class="form-control" required>
+                </div>
+            
+                <!-- CHAMP : CONTENU DU MESSAGE (zone de texte)        -->
+           
+                <div class="mb-3">
+                    <label class="form-label">Message</label>
+                    <!--
+                      name="content" : paramètre attendu par le contrôleur
+                      rows="5" : hauteur de 5 lignes
+                      required : validation HTML5 (champ obligatoire)
+                    -->
+                    <textarea name="content" class="form-control" rows="5" required></textarea>
+                </div>
+            
+                <!-- ALERTE D'INFORMATION (simulation)                 -->
+         
+                <div class="alert alert-info">
+                    <small>✉️ Simulation : Ce message n'est pas réellement envoyé par email.</small>
+                </div>
+
+             
+                <!-- BOUTONS : Annuler et Envoyer                      -->
+           
+                <div class="d-flex justify-content-between">
+
+                    <!--
+                      Bouton Annuler : retour à l'index avec conservation des filtres
+                      Redirige vers /index avec les paramètres de contexte
+                    -->
+                    <a th:href="@{/index(categoryId=${returnCategoryId}, keyword=${returnKeyword})}"
+                       class="btn btn-secondary">Annuler</a>
+
+                    <!-- Bouton d'envoi du message -->
+                    <button type="submit" class="btn btn-primary">Envoyer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</html>
