@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<!--
+  Template de base (layout) pour l'application Mon Agenda de Contacts.
+  Ce fichier définit la structure commune à toutes les pages :
+  - Barre de navigation avec gestion dynamique de l'authentification
+  - Zone de contenu variable (fragment)
+  - Footer
+  - Inclusion des ressources CSS/JS
+
+  Utilise Thymeleaf avec l'extension Layout Dialect pour permettre
+  aux pages filles d'injecter leur contenu dans la zone "content".
+-->
+
+<!--
+  Déclarations des namespaces XML :
+  - th: pour les attributs standard Thymeleaf
+  - layout: pour l'extension Layout Dialect qui permet l'héritage de templates
+-->
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Mon agenda de contacts</title>
+    <!-- Import de Bootstrap CSS depuis les ressources statiques -->
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+</head>
+
+<body>
+
+<!--
+  Barre de navigation principale
+  Classes Bootstrap : navbar, bg-dark pour fond sombre
+-->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <!-- Logo / Titre cliquable redirigeant vers l'accueil public -->
+        <a class="navbar-brand" href="/accueil">Mon Agenda de contacts</a>
+
+        <!-- Bouton pour version responsive (mobile) -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Menu de navigation -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <!-- Menu aligné à gauche -->
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/accueil">Accueil</a>
+                </li>
+                <!-- Lien "Mes contacts" visible uniquement si l'utilisateur est connecté -->
+                <li class="nav-item" th:if="${session.loggedUser != null}">
+                    <a class="nav-link" href="/index">Mes contacts</a>
+                </li>
+            </ul>
+
+            <!-- Menu aligné à droite -->
+            <ul class="navbar-nav">
+                <!-- Bouton Connexion visible uniquement si l'utilisateur N'EST PAS connecté -->
+                <li class="nav-item" th:if="${session.loggedUser == null}">
+                    <a class="nav-link btn btn-outline-light" href="/login">Connexion</a>
+                </li>
+
+                <!-- Zone utilisateur connecté visible uniquement si l'utilisateur est connecté -->
+                <li class="nav-item" th:if="${session.loggedUser != null}">
+                    <!-- Message de bienvenue avec le nom d'utilisateur venant de la session -->
+                    <span class="navbar-text text-light me-3">
+                        Bonjour <strong th:text="${session.username}"></strong>
+                    </span>
+                    <!-- Bouton de déconnexion -->
+                    <a class="nav-link btn btn-outline-danger" href="/logout">Déconnexion</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!--
+  Zone de contenu dynamique.
+  Les pages filles qui étendent ce layout placent leur contenu ici.
+  C'est le point d'injection principal des vues spécifiques.
+-->
+<div class="container mt-4" layout:fragment="content"></div>
+
+<!-- Pied de page -->
+<footer class="footer">
+    <div class="container">
+        <span>© 2026 Mon Agenda de Contacts - Tous droits réservés</span>
+    </div>
+</footer>
+
+<!-- Import de Bootstrap JS pour les composants interactifs -->
+<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>
