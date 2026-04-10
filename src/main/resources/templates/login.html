@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<!--
+  Page de connexion de l'application Mon Agenda de Contacts.
+  Cette page permet aux utilisateurs de s'authentifier pour accéder à leur agenda.
+
+  Fonctionnalités :
+  - Formulaire d'authentification (nom d'utilisateur + mot de passe)
+  - Affichage des messages d'erreur en cas d'échec de connexion
+  - Design centré et responsive grâce à Bootstrap
+
+  Points clés :
+  - Accessible sans authentification (page publique)
+  - Soumet les données en POST vers /login (géré par AuthController)
+-->
+
+<!--
+  Déclarations des namespaces XML :
+  - th: pour les attributs standard Thymeleaf
+  - layout: pour l'extension Layout Dialect
+  - layout:decorate="~{layout}" : hérite du template layout.html
+-->
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+
+<!--
+  Zone de contenu principal injectée dans le layout
+  Le fragment "content" du layout est remplacé par ce formulaire de connexion
+-->
+<div layout:fragment="content" class="container mt-4">
+
+    <!--
+      Système de grille Bootstrap pour centrer le formulaire
+      row justify-content-center : ligne avec les colonnes centrées horizontalement
+      col-md-4 : colonne de largeur moyenne (4/12 de l'écran sur les écrans moyens et plus)
+    -->
+    <div class="row justify-content-center">
+        <div class="col-md-4">
+
+            <!-- Carte contenant le formulaire de connexion -->
+            <div class="card">
+
+                <!-- En-tête de la carte avec fond bleu et texte blanc -->
+                <div class="card-header bg-primary text-white">
+                    Connexion
+                </div>
+
+                <!-- Corps de la carte contenant le formulaire -->
+                <div class="card-body">
+
+                    <!--
+                      Formulaire d'authentification
+                      method="post" : envoi des données en HTTP POST (sécurisé)
+                      L'action est vide, donc les données sont envoyées à l'URL courante (/login)
+                    -->
+                    <form method="post">
+
+                        <!-- Champ nom d'utilisateur -->
+                        <div class="mb-3">
+                            <input type="text" name="username"
+                                   class="form-control"
+                                   placeholder="Nom d'utilisateur"
+                                   required>
+                        </div>
+
+                        <!-- Champ mot de passe -->
+                        <div class="mb-3">
+                            <input type="password" name="password"
+                                   class="form-control"
+                                   placeholder="Mot de passe"
+                                   required>
+                        </div>
+
+                        <!-- Bouton de soumission occupant toute la largeur -->
+                        <button type="submit" class="btn btn-primary w-100">Se connecter</button>
+                    </form>
+
+                    <!--
+                      Affichage dynamique des erreurs d'authentification
+                      th:if="${error}" : affiche ce bloc uniquement si une erreur est présente
+                      th:text="${error}" : insère le message d'erreur venant du contrôleur
+                    -->
+                    <div th:if="${error}" class="alert alert-danger mt-3" th:text="${error}"></div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</html>
