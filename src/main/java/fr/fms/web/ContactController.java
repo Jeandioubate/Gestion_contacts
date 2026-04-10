@@ -145,5 +145,28 @@ public class ContactController {
         return redirect; // Retourne la redirection
     }
     
+    /**
+     * Affiche le formulaire d'ajout d'un nouveau contact.
+     *
+     * @param model Le modèle Spring pour passer les données à la vue
+     * @param session La session HTTP pour vérifier l'authentification
+     * @return Le nom de la vue "contact" ou redirection vers login
+     */
+    @GetMapping("/contact") // Gère les requêtes HTTP GET vers l'URL "/contact"
+    public String contactForm(Model model, HttpSession session) {
+        // Vérification de l'authentification
+        if (!isAuthenticated(session)) {
+            return "redirect:/login";
+        }
+
+        // Ajoute un nouvel objet Contact vide au modèle
+        model.addAttribute("contact", new Contact());
+        // Ajoute toutes les catégories pour le menu déroulant
+        model.addAttribute("categories", categoryRepository.findAll());
+        // Indique qu'il s'agit d'un ajout (et non d'une modification)
+        model.addAttribute("isEdit", false);
+        return "contact"; // Retourne la vue contact.html
+    }
+    
     
 }
