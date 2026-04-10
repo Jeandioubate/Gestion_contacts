@@ -80,5 +80,28 @@ public class MessageService {
         // Puis ajoute le message à la liste existante ou nouvellement créée
         messagesMap.computeIfAbsent(contactId, k -> new ArrayList<>()).add(message);
     }
+    
+    /**
+     * Récupère tous les messages d'un contact spécifique.
+     * Les messages sont triés par date décroissante (les plus récents en premier).
+     *
+     * @param contactId L'identifiant du contact
+     * @param session La session HTTP contenant les messages
+     * @return La liste des messages du contact (vide si aucun message)
+     */
+    // Récupérer les messages d'un contact
+    public List<MessageDto> getMessagesForContact(Long contactId, HttpSession session) {
+        // Récupère la map des messages depuis la session
+        Map<Long, List<MessageDto>> messagesMap = getMessagesMap(session);
+
+        // Récupère la liste des messages pour le contact, ou une liste vide par défaut
+        List<MessageDto> messages = messagesMap.getOrDefault(contactId, new ArrayList<>());
+
+        // Trie les messages par date décroissante (du plus récent au plus ancien)
+        // m2.getSentDate().compareTo(m1.getSentDate()) : inverse l'ordre naturel
+        messages.sort((m1, m2) -> m2.getSentDate().compareTo(m1.getSentDate()));
+
+        return messages;
+    }
 	
 }
