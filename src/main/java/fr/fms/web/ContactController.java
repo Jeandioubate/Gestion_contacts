@@ -262,5 +262,40 @@ public class ContactController {
         return redirect; // Redirection vers la liste des contacts
     }
     
+    /**
+     * Affiche le formulaire d'envoi de message pour un contact spécifique.
+     *
+     * @param contactId ID du contact destinataire
+     * @param categoryId ID de catégorie pour le retour (optionnel)
+     * @param keyword Mot-clé pour le retour (optionnel)
+     * @param model Le modèle Spring
+     * @param session La session HTTP
+     * @return La vue "send-message" ou redirection vers l'index si le contact n'existe pas
+     */
+    // Afficher le formulaire d'envoi de message
+    @GetMapping("/sendMessage") // Gère les requêtes HTTP GET vers l'URL "/sendMessage"
+    public String showMessageForm(@RequestParam Long contactId, // ID du contact destinataire
+                                 @RequestParam(name="categoryId", required=false) Long categoryId, // Contexte de retour
+                                 @RequestParam(name="keyword", defaultValue="") String keyword, // Contexte de retour
+                                 Model model,
+                                 HttpSession session) {
+
+        // Vérification de l'authentification
+        if (!isAuthenticated(session)) {
+            return "redirect:/login";
+        }
+
+        // Recherche le contact destinataire
+        Optional<Contact> contactOpt = contactRepository.findById(contactId);
+        if (contactOpt.isPresent()) {
+            model.addAttribute("contact", contactOpt.get()); // Ajoute le contact au modèle
+            model.addAttribute("returnCategoryId", categoryId); // Conserve le contexte
+            model.addAttribute("returnKeyword", keyword);
+            return "send-message"; // Retourne la vue du formulaire d'envoi
+        }
+
+        return "redirect:/index"; // Redirection si le contact n'existe pas
+    }
+    
     
 }
