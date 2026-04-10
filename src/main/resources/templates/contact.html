@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<!--
+  Page de formulaire pour l'ajout et la modification d'un contact (contact.html)
+
+  Cette page est utilisée à la fois pour :
+  - Ajouter un nouveau contact (mode création)
+  - Modifier un contact existant (mode édition)
+
+  Fonctionnalités :
+  - Formulaire complet avec tous les champs d'un contact
+  - Validation des données avec affichage des erreurs
+  - Sélection de catégorie via menu déroulant
+  - Conservation des paramètres de filtrage (catégorie, mot-clé) pour le retour
+  - Adaptation dynamique du titre et du bouton selon le mode
+
+  Accessible uniquement après authentification
+  Utilise le template layout.html comme structure de base
+-->
+
+<!--
+  Déclarations des namespaces :
+  - th: pour les attributs Thymeleaf
+  - layout: pour l'extension Layout Dialect
+  - layout:decorate="~{layout}" : hérite du template layout.html
+-->
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+
+<!-- Zone de contenu principal injectée dans le layout -->
+<div layout:fragment="content" class="container mt-4">
+
+    <!-- Carte contenant le formulaire -->
+    <div class="card">
+        
+        <!-- EN-TÊTE DE LA CARTE             -->
+        
+        <div class="card-header bg-primary text-white">
+            <!-- Icône : plus-circle pour ajout, edit pour modification -->
+            <i th:if="${!isEdit}" class="fas fa-plus-circle"></i>
+            <i th:if="${isEdit}" class="fas fa-edit"></i>
+
+            <!-- Titre : "Ajouter un contact" ou "Modifier un contact" -->
+            <span th:if="${!isEdit}">Ajouter un contact</span>
+            <span th:if="${isEdit}">Modifier un contact</span>
+        </div>
+        
+        <!-- CORPS DE LA CARTE : FORMULAIRE                        -->
+        
+        <div class="card-body">
+
+            <!--
+              Formulaire d'ajout/modification de contact
+              th:action="@{/save}" : soumission vers /save (ContactController.save)
+              th:object="${contact}" : lie le formulaire à l'objet Contact
+              method="post" : envoi en méthode POST
+            -->
+            <form th:action="@{/save}"
+                  th:object="${contact}"
+                  method="post">
+                
+                <!-- CHAMPS CACHÉS (informations de contexte)         -->                
+
+                <!-- ID du contact : vide en création, rempli en modification -->
+                <input type="hidden" th:field="*{id}" />
+
+                <!-- Indique si c'est une modification (true) ou un ajout (false) -->
+                <input type="hidden" name="isEdit" th:value="${isEdit}" />
+
+                <!--
+                  Paramètres de contexte pour le retour :
+                  - returnCategoryId : ID de la catégorie filtrée avant l'action
+                  - returnKeyword : mot-clé de recherche avant l'action
+                  Permet de revenir à la même vue après sauvegarde
+                -->
+                <input type="hidden" name="returnCategoryId" th:value="${returnCategoryId}" />
+                <input type="hidden" name="returnKeyword" th:value="${returnKeyword}" />
+                
+                <!-- CHAMP : NOM (lastName)                            -->
+               
+                <div class="mb-3">
+                    <label class="form-label">Nom</label>
+                    <!-- th:field="*{lastName}" : lie le champ à la propriété lastName du contact -->
+                    <input type="text" th:field="*{lastName}" class="form-control" required>
+                    <!-- Affichage des erreurs de validation -->
+                    <span class="text-danger" th:errors="*{lastName}"></span>
+                </div>
+                
+                <!-- CHAMP : PRÉNOM (firstName)                        -->
+                
+                <div class="mb-3">
+                    <label class="form-label">Prénom</label>
+                    <input type="text" th:field="*{firstName}" class="form-control" required>
+                    <span class="text-danger" th:errors="*{firstName}"></span>
+                </div>
+                
+                <!-- CHAMP : EMAIL                                    -->
+                
+                <div class="mb-3">
+                    <label class="form-label">Email</label>                    
+                    <input type="email" th:field="*{email}" class="form-control" required>
+                    <span class="text-danger" th:errors="*{email}"></span>
+                </div>
+               
+                <!-- CHAMP : TÉLÉPHONE (phoneNumber)                   -->
+            
+                <div class="mb-3">
+                    <label class="form-label">Téléphone</label>                    
+                    <input type="tel" th:field="*{phoneNumber}" class="form-control" required>
+                    <span class="text-danger" th:errors="*{phoneNumber}"></span>
+                </div>
+             
+                <!-- CHAMP : ADRESSE (address)                         -->
+               
+                <div class="mb-3">
+                    <label class="form-label">Adresse</label>
+                    <input type="text" th:field="*{address}" class="form-control" required>
+                    <span class="text-danger" th:errors="*{address}"></span>
+                </div>
+             
+                <!-- CHAMP : CATÉGORIE (menu déroulant)                -->
+           
+                <div class="mb-3">
+                    <label class="form-label">Catégorie</label>
+                    <!--
+                      name="categoryId" : paramètre attendu par le contrôleur
+                      class="form-select" : style Bootstrap pour les select
+                    -->
+                    <select name="categoryId" class="form-select">
+                        <!-- Option par défaut (aucune catégorie sélectionnée) -->
+                        <option value="">Sélectionnez une catégorie</option>
+
+                        <!--
+                          Génération dynamique des options de catégories
+                          th:each="cat : ${categories}" : itère sur toutes les catégories
+                          th:value="${cat.id}" : valeur = ID de la catégorie
+                          th:text="${cat.name}" : texte affiché = nom de la catégorie
+                          th:selected : présélectionne la catégorie du contact en mode édition
+                        -->
+                        <option th:each="cat : ${categories}"
+                                th:value="${cat.id}"
+                                th:text="${cat.name}"
+                                th:selected="${contact.category != null and contact.category.id == cat.id}">
+                        </option>
+                    </select>
+                </div>
+               
+                <!-- BOUTONS : Annuler et Enregistrer/Mettre à jour    -->
+               
+                <div class="d-flex justify-content-between mt-4">
+
+                    <!--
+                      Bouton Annuler : retour à l'index avec conservation des filtres
+                      Redirige vers /index 
+                    -->
+                    <a th:href="@{/index(categoryId=${returnCategoryId}, keyword=${returnKeyword})}"
+                       class="btn btn-secondary">
+                        Annuler
+                    </a>
+
+                    <!--
+                      Bouton de soumission
+                      Texte adapté : "Enregistrer" (ajout) ou "Mettre à jour" (modification)
+                    -->
+                    <button type="submit" class="btn btn-success">
+                        <span th:if="${!isEdit}">Enregistrer</span>
+                        <span th:if="${isEdit}">Mettre à jour</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</html>
