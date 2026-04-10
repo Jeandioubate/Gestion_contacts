@@ -168,5 +168,40 @@ public class ContactController {
         return "contact"; // Retourne la vue contact.html
     }
     
+    /**
+     * Affiche le formulaire d'édition d'un contact existant.
+     *
+     * @param id ID du contact à modifier
+     * @param categoryId ID de la catégorie pour le retour 
+     * @param keyword Mot-clé pour le retour
+     * @param model Le modèle Spring pour passer les données
+     * @param session La session HTTP pour vérifier l'authentification
+     * @return La vue "contact" ou redirection vers l'index si le contact n'existe pas
+     */
+    @GetMapping("/edit") // Gère les requêtes HTTP GET vers l'URL "/edit"
+    public String editContact(@RequestParam("id") Long id, // ID du contact à modifier
+                             @RequestParam(name="categoryId", required=false) Long categoryId, // Pour conserver le contexte de retour
+                             @RequestParam(name="keyword", defaultValue="") String keyword, // Pour conserver le contexte de retour
+                             Model model,
+                             HttpSession session) {
+
+        // Vérification de l'authentification
+        if (!isAuthenticated(session)) {
+            return "redirect:/login";
+        }
+
+        // Recherche le contact par son ID
+        Optional<Contact> contactOpt = contactRepository.findById(id);
+        if (contactOpt.isPresent()) { // Si le contact existe
+            model.addAttribute("contact", contactOpt.get()); // Ajoute le contact existant
+            model.addAttribute("categories", categoryRepository.findAll()); // Ajoute les catégories
+            model.addAttribute("isEdit", true); // Indique qu'il s'agit d'une modification
+            model.addAttribute("returnCategoryId", categoryId); // Conserve le filtre pour le retour
+            model.addAttribute("returnKeyword", keyword); // Conserve la recherche pour le retour
+            return "contact"; // Retourne la vue d'édition
+        }
+        return "redirect:/index"; // Redirection si le contact n'existe pas
+    }
+    
     
 }
