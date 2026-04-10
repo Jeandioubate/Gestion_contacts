@@ -50,6 +50,8 @@ public interface ContactRepository extends JpaRepository<Contact, Long> {
      * 
      */
     List<Contact> findByCategory_Id(Long categoryId);
+    
+    List<Contact> findByEmail(String email);
 
 }
 
