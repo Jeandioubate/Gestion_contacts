@@ -103,5 +103,20 @@ public class MessageService {
 
         return messages;
     }
+    
+    /**
+     * Compte le nombre de messages non lus pour un contact.
+     *
+     * @param contactId L'identifiant du contact
+     * @param session La session HTTP contenant les messages
+     * @return Le nombre de messages non lus (long pour compatibilité avec Stream.count())
+     */
+    // Compter les messages non lus pour un contact
+    public long countUnreadMessages(Long contactId, HttpSession session) {
+        // Récupère tous les messages du contact, puis filtre ceux qui ne sont pas lus, puis compte
+        return getMessagesForContact(contactId, session).stream()
+            .filter(m -> !m.isRead()) // Garde uniquement les messages où read == false
+            .count(); // Compte le nombre d'éléments restants
+    }
 	
 }
