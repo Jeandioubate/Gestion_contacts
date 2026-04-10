@@ -18,10 +18,8 @@ import fr.fms.entities.Category;
 import fr.fms.entities.Contact;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-
-
-
-
+import fr.fms.services.MessageService;
+import fr.fms.dto.MessageDto;
 
 /**
  * Contrôleur Spring MVC pour la gestion des contacts et des messages.
@@ -295,6 +293,63 @@ public class ContactController {
         }
 
         return "redirect:/index"; // Redirection si le contact n'existe pas
+    }
+    
+    /**
+     * Envoie un message à un contact.
+     * Le message est stocké en session (pas en base de données).
+     *
+     * @param contactId ID du contact destinataire
+     * @param subject Sujet du message
+     * @param content Contenu du message
+     * @param returnCategoryId ID de catégorie pour le retour (optionnel)
+     * @param returnKeyword Mot-clé pour le retour (optionnel)
+     * @param session La session HTTP (stocke les messages)
+     * @param model Le modèle Spring
+     * @return Redirection vers l'index avec un message de succès
+     */
+    // Envoyer un message (sans BDD)
+    @PostMapping("/sendMessage") // Gère les requêtes HTTP POST vers l'URL "/sendMessage"
+    public String sendMessage(@RequestParam Long contactId, // ID du contact destinataire
+                             @RequestParam String subject, // Sujet du message
+                             @RequestParam String content, // Contenu du message
+                             @RequestParam(name="returnCategoryId", required=false) Long returnCategoryId, // Contexte
+                             @RequestParam(name="returnKeyword", defaultValue="") String returnKeyword, // Contexte
+                             HttpSession session,
+                             Model model) {
+
+        // Vérification de l'authentification
+        if (!isAuthenticated(session)) {
+            return "redirect:/login";
+        }
+
+        // Recherche le contact destinataire
+        Optional<Contact> contactOpt = contactRepository.findById(contactId);
+        if (contactOpt.isPresent()) {
+            Contact contact = contactOpt.get();
+            String senderName = (String) session.getAttribute("username"); // Nom de l'expéditeur depuis la session
+
+            // Stocke le message en session via le service (pas de persistance BDD)
+            messageService.sendMessage(subject, content, senderName,
+                                       contactId, contact.getFirstName() + " " + contact.getLastName(),
+                                       session);
+
+            // Ajoute un message de succès dans le modèle
+            model.addAttribute("successMessage", "Message envoyé avec succès à " + contact.getFirstName() + " " + contact.getLastName());
+        }
+
+        // Construction de l'URL de redirection
+        String redirect = "redirect:/index";
+        if (returnCategoryId != null) {
+            redirect += "?categoryId=" + returnCategoryId;
+            if (!returnKeyword.isEmpty()) {
+                redirect += "&keyword=" + returnKeyword;
+            }
+        } else if (!returnKeyword.isEmpty()) {
+            redirect += "?keyword=" + returnKeyword;
+        }
+
+        return redirect; // Redirection vers l'index
     }
     
     
